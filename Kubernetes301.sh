@@ -23,7 +23,7 @@ $ sudo mv cfssljson_linux-amd64 /usr/local/bin/cfssljson
 
 $ cfssl version
 #############################################################
-#############################################################
+
 
 Installing kubectl
 1- Download the binary.
@@ -82,9 +82,9 @@ backend kubernetes-master-nodes
 mode tcp
 balance roundrobin
 option tcp-check
-server k8s-master-0 10.10.10.90:6443 check fall 3 rise 2
-server k8s-master-1 10.10.10.91:6443 check fall 3 rise 2
-server k8s-master-2 10.10.10.92:6443 check fall 3 rise 2
+server k8s-master-0 190.10.10.90:6443 check fall 3 rise 2
+server k8s-master-1 190.10.10.91:6443 check fall 3 rise 2
+server k8s-master-2 190.10.10.92:6443 check fall 3 rise 2
 
 #############################################################
 5- Restart HAProxy.
@@ -171,7 +171,7 @@ $ cfssl gencert \
 -ca=ca.pem \
 -ca-key=ca-key.pem \
 -config=ca-config.json \
--hostname=10.10.10.90,10.10.10.91,10.10.10.92,10.10.10.93,127.0.0.1,kubernetes.default \
+-hostname=190.10.10.90,190.10.10.91,190.10.10.92,190.10.10.93,127.0.0.1,kubernetes.default \
 -profile=kubernetes kubernetes-csr.json | \
 cfssljson -bare kubernetes
 
@@ -183,17 +183,17 @@ $ ls -la
 #############################################################
 4- Copy the certificate to each nodes.
 
-$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@10.10.10.90:~
-$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@10.10.10.91:~
-$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@10.10.10.92:~
-$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@10.10.10.100:~
-$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@10.10.10.101:~
-$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@10.10.10.102:~
+$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@190.10.10.90:~
+$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@190.10.10.91:~
+$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@190.10.10.92:~
+$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@190.10.10.100:~
+$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@190.10.10.101:~
+$ scp ca.pem kubernetes.pem kubernetes-key.pem ubuntu@190.10.10.102:~
 
 #############################################################
 #############################################################
 ##Preparing the nodes for kubeadm                          ##
-##Preparing the 10.10.10.90/91/92/100/101/102 machine      ##
+##Preparing the 190.10.10.90/91/92/100/101/102 machine      ##
 ##Performing below steps on all systems                    ##
 #############################################################
 Installing Docker latest version
@@ -280,12 +280,12 @@ ExecStart=/usr/local/bin/etcd \
   --peer-trusted-ca-file=/etc/etcd/ca.pem \
   --peer-client-cert-auth \
   --client-cert-auth \
-  --initial-advertise-peer-urls https://10.10.10.90:2380 \
-  --listen-peer-urls https://10.10.40.10:2380 \
-  --listen-client-urls https://10.10.10.90:2379,http://127.0.0.1:2379 \
-  --advertise-client-urls https://10.10.10.90:2379 \
+  --initial-advertise-peer-urls https://190.10.10.90:2380 \
+  --listen-peer-urls https://190.10.40.10:2380 \
+  --listen-client-urls https://190.10.10.90:2379,http://127.0.0.1:2379 \
+  --advertise-client-urls https://190.10.10.90:2379 \
   --initial-cluster-token etcd-cluster-0 \
-  --initial-cluster 10.10.10.90=https://10.10.10.90:2380,10.10.10.91=https://10.10.10.91:2380,10.10.10.92=https://10.10.10.92:2380 \
+  --initial-cluster 190.10.10.90=https://190.10.10.90:2380,190.10.10.91=https://190.10.10.91:2380,190.10.10.92=https://190.10.10.92:2380 \
   --initial-cluster-state new \
   --data-dir=/var/lib/etcd
 Restart=on-failure
@@ -320,7 +320,7 @@ Perform all the steps on other Master (91 and 92) by replacing IP
 #############################################################
 ##Initializing the master nodes                            ##
 ##Initializing the Master node 10.10.10.90                 ##
-##1- SSH to the 10.10.10.90 machine.                       ##
+##1- SSH to the 190.10.10.90 machine.                       ##
 #############################################################
 #############################################################
 2- Create the configuration file for kubeadm.
@@ -330,19 +330,19 @@ apiVersion: kubeadm.k8s.io/v1alpha3
 kind: ClusterConfiguration
 kubernetesVersion: stable
 apiServerCertSANs:
-- 10.10.10.93
-controlPlaneEndpoint: "10.10.10.93:6443"
+- 190.10.10.93
+controlPlaneEndpoint: "190.10.10.93:6443"
 etcd:
   external:
     endpoints:
-    - https://10.10.10.90:2379
-    - https://10.10.10.91:2379
-    - https://10.10.10.92:2379
+    - https://190.10.10.90:2379
+    - https://190.10.10.91:2379
+    - https://190.10.10.92:2379
     caFile: /etc/etcd/ca.pem
     certFile: /etc/etcd/kubernetes.pem
     keyFile: /etc/etcd/kubernetes-key.pem
 networking:
-  podSubnet: 10.30.0.0/24
+  podSubnet: 190.30.0.0/24
 apiServerExtraArgs:
   apiserver-count: "3"
   
@@ -354,12 +354,12 @@ $ sudo kubeadm init --config=config.yaml
 #############################################################
 4- Copy the certificates to the two other masters.
 
-$ sudo scp -r /etc/kubernetes/pki ubuntu@10.10.10.91:~
-$ sudo scp -r /etc/kubernetes/pki ubuntu@10.10.10.92:~
+$ sudo scp -r /etc/kubernetes/pki ubuntu@190.10.10.91:~
+$ sudo scp -r /etc/kubernetes/pki ubuntu@190.10.10.92:~
 #############################################################
 #############################################################
-##Initializing the 2nd master node 10.10.10.91             ##
-##1- SSH to the 10.10.10.91 machine.                       ##
+##Initializing the 2nd master node 190.10.10.91             ##
+##1- SSH to the 190.10.10.91 machine.                       ##
 #############################################################
 #############################################################
 2- Remove the apiserver.crt and apiserver.key.
@@ -378,19 +378,19 @@ apiVersion: kubeadm.k8s.io/v1alpha3
 kind: ClusterConfiguration
 kubernetesVersion: stable
 apiServerCertSANs:
-- 10.10.10.93
-controlPlaneEndpoint: "10.10.10.93:6443"
+- 190.10.10.93
+controlPlaneEndpoint: "190.10.10.93:6443"
 etcd:
   external:
     endpoints:
-    - https://10.10.10.90:2379
-    - https://10.10.10.91:2379
-    - https://10.10.10.92:2379
+    - https://190.10.10.90:2379
+    - https://190.10.10.91:2379
+    - https://190.10.10.92:2379
     caFile: /etc/etcd/ca.pem
     certFile: /etc/etcd/kubernetes.pem
     keyFile: /etc/etcd/kubernetes-key.pem
 networking:
-  podSubnet: 10.30.0.0/24
+  podSubnet: 190.30.0.0/24
 apiServerExtraArgs:
   apiserver-count: "3"
   
@@ -401,7 +401,7 @@ apiServerExtraArgs:
 #############################################################
 #############################################################
 
-#### Initializing the 3rd master node 10.10.10.92 1- SSH to the 10.10.10.92 machine.
+#### Initializing the 3rd master node 190.10.10.92 1- SSH to the 190.10.10.92 machine.
 
 #############################################################
 2- Remove the apiserver.crt and apiserver.key.
@@ -419,19 +419,19 @@ apiVersion: kubeadm.k8s.io/v1alpha3
 kind: ClusterConfiguration
 kubernetesVersion: stable
 apiServerCertSANs:
-- 10.10.10.93
-controlPlaneEndpoint: "10.10.10.93:6443"
+- 190.10.10.93
+controlPlaneEndpoint: "190.10.10.93:6443"
 etcd:
   external:
     endpoints:
-    - https://10.10.10.90:2379
-    - https://10.10.10.91:2379
-    - https://10.10.10.92:2379
+    - https://190.10.10.90:2379
+    - https://190.10.10.91:2379
+    - https://190.10.10.92:2379
     caFile: /etc/etcd/ca.pem
     certFile: /etc/etcd/kubernetes.pem
     keyFile: /etc/etcd/kubernetes-key.pem
 networking:
-  podSubnet: 10.30.0.0/24
+  podSubnet: 190.30.0.0/24
 apiServerExtraArgs:
   apiserver-count: "3"
   
@@ -444,10 +444,10 @@ apiServerExtraArgs:
 
 #############################################################
 ### Initializing the worker nodes 
-#### Initializing the worker node 10.10.10.100/101/102 1- SSH to the 10.10.100.100 machine.
+#### Initializing the worker node 190.10.10.100/101/102 1- SSH to the 190.10.100.100 machine.
 2- Execute the “kubeadm join” command that you copied from the last step of the initialization of the masters.
 
-  $ sudo kubeadm join 10.10.40.93:6443 --token [your_token] --discovery-token-ca-cert-hash sha256:[your_token_ca_cert_hash]
+  $ sudo kubeadm join 190.10.40.93:6443 --token [your_token] --discovery-token-ca-cert-hash sha256:[your_token_ca_cert_hash]
 Run same command on worker node 101 and 102
 
 #############################################################
@@ -460,7 +460,7 @@ Configuring kubectl on the client machine
 
 #############################################################
 #############################################################
-1- SSH to one of the master node. 10.10.10.90
+1- SSH to one of the master node. 190.10.10.90
 2- Add permissions to the admin.conf file.
 
 $ sudo chmod +r /etc/kubernetes/admin.conf
@@ -468,7 +468,7 @@ $ sudo chmod +r /etc/kubernetes/admin.conf
 #############################################################
 3- From the client machine, copy the configuration file.
 
-$ scp ubuntu@10.10.10.90:/etc/kubernetes/admin.conf .
+$ scp ubuntu@190.10.10.90:/etc/kubernetes/admin.conf .
 #############################################################
 
 4- Create and configure the kubectl configuration directory.
